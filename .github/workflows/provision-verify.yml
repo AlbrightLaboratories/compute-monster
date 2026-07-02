@@ -37,7 +37,14 @@ jobs:
           nvidia-smi -L 2>&1 || echo "nvidia-smi: not ready"
           sudo openrgb --list-devices 2>&1 | head -120 || echo "openrgb: not installed yet"
           echo "--- meteor targets ---"
-          sudo journalctl -u openrgb-meteor --no-pager 2>/dev/null | grep -iE "animating|error|no rgb|zone" | tail -20 || true
+          sudo journalctl -u openrgb-meteor --no-pager 2>/dev/null | grep -iE "animating|error|no rgb|zone|mode" | tail -30 || true
+          echo "--- VISIBLE TEST: set ALL devices solid red via server ---"
+          sudo systemctl stop openrgb-meteor || true
+          sleep 1
+          sudo openrgb -c FF0000 2>&1 | tail -3 || true
+          echo "(fans/RAM/GPU should now be SOLID RED for ~60s; then meteor restarts)"
+          sleep 60
+          sudo systemctl start openrgb-meteor || true
           echo "===== block devices / storage ====="
           lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINT 2>&1 || true
           echo "--- fstab data ---"; grep -i data /etc/fstab 2>&1 || true

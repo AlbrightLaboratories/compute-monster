@@ -91,10 +91,26 @@ def run():
         """Direct mode + resize resizable zones (Lian Li hub channels default to
         0 LEDs until told how many fans are chained — leaving them 0 means the
         animator runs happily while the fans stay dark)."""
+        # Log the device's modes and which is active — a hub left in a hardware
+        # effect ignores Direct frames entirely.
         try:
-            d.set_mode("Direct")
-        except Exception:
-            pass
+            names = [m.name for m in d.modes]
+            active = d.modes[d.active_mode].name if 0 <= d.active_mode < len(names) else "?"
+            print(f"{d.name}: modes={names} active={active!r}", flush=True)
+        except Exception as e:
+            print(f"{d.name}: cannot read modes: {e}", flush=True)
+        mode_ok = False
+        for mode_name in ("Direct", "Custom", "direct", "custom"):
+            try:
+                d.set_mode(mode_name)
+                print(f"{d.name}: set_mode({mode_name!r}) OK", flush=True)
+                mode_ok = True
+                break
+            except Exception as e:
+                print(f"{d.name}: set_mode({mode_name!r}) failed: {e}", flush=True)
+        if not mode_ok:
+            print(f"{d.name}: NO writable mode accepted — frames will be ignored",
+                  flush=True)
         resized = False
         for zi, z in enumerate(d.zones):
             zmax = getattr(z, "leds_max", 0) or 0
