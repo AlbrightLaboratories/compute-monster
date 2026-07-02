@@ -29,13 +29,18 @@ hdr "3. storage /data (Seagate)"
 mountpoint -q /data && pass "/data mounted ($(df -h --output=size /data | tail -1 | xargs))" || fail "/data not mounted"
 grep -q " /data " /etc/fstab && pass "/data in fstab" || fail "/data not persistent"
 
-hdr "4. RGB red meteor"
-systemctl is-active --quiet openrgb-server && pass "openrgb-server" || fail "openrgb-server down"
-if systemctl is-active --quiet openrgb-meteor; then
-  if journalctl -u openrgb-meteor --no-pager 2>/dev/null | grep -q "animating meteor"; then
-    pass "meteor animating"
-  else info "meteor service up but no device yet — run: /opt/openrgb-meteor/venv/bin/python /opt/openrgb-meteor/meteor.py --list"; fi
-else fail "openrgb-meteor down"; fi
+hdr "4. RGB red meteor (lianli-daemon — OpenRGB retired, cannot drive this hub)"
+RUNNER_U="a_guy"; u_id="$(id -u $RUNNER_U 2>/dev/null)"
+if sudo -u "$RUNNER_U" XDG_RUNTIME_DIR="/run/user/$u_id" systemctl --user is-active --quiet lianli-daemon 2>/dev/null; then
+  pass "lianli-daemon active"
+else
+  fail "lianli-daemon down"
+fi
+if grep -q '"mode":"Meteor"' "/home/$RUNNER_U/.config/lianli/config.json" 2>/dev/null; then
+  pass "red-meteor profile in lianli config (all groups)"
+else
+  fail "meteor profile missing from lianli config"
+fi
 
 hdr "5. fan control"
 command -v sensors >/dev/null && sensors 2>/dev/null | grep -qiE "fan|Tctl" && pass "sensors reporting" || info "run sensors-detect / check nct6775"
