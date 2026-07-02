@@ -39,6 +39,15 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## ISO images
 
+### image-002 — 2026-07-02  (current — clean-install validation pending)
+- 📀 Self-healing **pull model**: `compute-monster-provision.service` runs `firstboot.sh`,
+  which git-pulls `main` and runs the resumable bootstrap (baked copy = offline fallback).
+- 📀 Resumable, fault-tolerant, **reboot-aware** bootstrap (all the 2026-07-02 fixes above).
+- 📀 Ubuntu 24.04.4 autoinstall; user `a_guy`, tz America/New_York; wipes NVMe only.
+- sha256 `b38985329574098745d4b8442e58eab01463fe4d442f68c9b5f3654c5bf0aeed`
+- **Status:** flashed to USB; a clean install is the end-to-end test. Because it pulls
+  `main`, later fixes reach fresh installs without another re-image.
+
 ### image-001 — 2026-07-02  (❌ superseded)
 - 📀 Ubuntu 24.04.4 unattended autoinstall; user `a_guy`, tz America/New_York; wipes NVMe only.
 - 📀 Baked provision bundle + first-boot service (original fragile version).
