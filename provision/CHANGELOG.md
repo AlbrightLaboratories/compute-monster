@@ -23,15 +23,19 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 ## Unreleased — on `main` (pulled live by the box)
 
 ### 2026-07-02 — RGB + storage fixes (iterating)
-- 🔧 **OpenRGB install fixed.** OpenRGB is **not in Ubuntu's repos** (`E: Unable to locate
-  package openrgb`), so the meteor service never started and the fans stayed dark. Now
-  installs the upstream `.deb` (`openrgb_0.9_amd64_bookworm` — runs on noble) via
-  `apt-get install ./openrgb.deb` (resolves deps + udev rules). `step 40-openrgb.sh`.
-- 🔎 **Storage `/data` skip under investigation.** `30-storage.sh` skipped the Seagate
-  because `/dev/sda already has a mount`; added `lsblk`/`fstab` diagnostics to the CI dump
-  to pinpoint and fix. (Not yet 🧪.)
-- ⏳ **Pending hardware check:** whether OpenRGB detects the Lian Li hub on this box — the
-  one genuinely uncertain piece for the red meteor.
+- 🧪 **OpenRGB install fixed.** OpenRGB is **not in Ubuntu's repos** (`E: Unable to locate
+  package openrgb`), so the meteor service never started. Now installs the upstream `.deb`
+  (`openrgb_0.9_amd64_bookworm` — runs on noble). Services now **active**; VERIFY reports
+  "meteor animating". `step 40-openrgb.sh`.
+- ❌ **BUT the fans are still dark — Lian Li UNI hub NOT detected by OpenRGB 0.9.**
+  `openrgb --list-devices` shows only **Corsair Dominator Platinum RAM**; the meteor falls
+  back to animating the RAM. Root cause under investigation — the L-Connect export showed the
+  hub as HID `vid_0cf2 pid_a102` (SL-Infinity). Next: confirm the hub is on the USB bus
+  (`lsusb`) and check whether OpenRGB 0.9 supports pid a102 or a newer build is needed.
+- ❌ **2 TB Seagate not present.** `lsblk` shows only the NVMe + the FAT32 USB (sda, at
+  /mnt/usb) — no 2 TB disk. Storage step wrongly picked the USB and a stale `/data` fstab
+  entry (bad UUID) exists. Needs: confirm the Seagate is cabled; harden `30-storage.sh` to
+  ignore removable/USB media and never write a bad fstab entry. (Not yet 🧪.)
 
 ### 2026-07-02 — CI runner privilege bootstrap
 - 🧪 **Passwordless sudo for the runner user.** CI runs as `a_guy` and provisioning needs

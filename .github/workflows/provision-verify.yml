@@ -40,6 +40,10 @@ jobs:
           lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINT 2>&1 || true
           echo "--- fstab data ---"; grep -i data /etc/fstab 2>&1 || true
           echo "--- rgb services ---"; systemctl is-active openrgb-server openrgb-meteor 2>&1 || true
+          echo "===== USB / Lian Li hub detection ====="
+          openrgb --version 2>&1 | head -2 || true
+          lsusb 2>&1 || true
+          echo "--- Lian Li vid 0cf2 ? ---"; lsusb -d 0cf2: 2>&1 || echo "no 0cf2 device on USB bus"
 
       - uses: actions/upload-artifact@v4
         if: always()
