@@ -1,7 +1,8 @@
 name: provision-verify
-# Runs the provisioner + verifier ON the compute-monster box itself (self-hosted
-# runner labelled 'compute-monster'), so we can iterate on provisioning remotely
-# and read pass/fail from the job log instead of copy-paste.
+# Runs ON the compute-monster box (self-hosted). Reboot-safe: it kicks the
+# self-healing provisioner as a DETACHED transient unit (so the NVIDIA reboot
+# doesn't kill this job), then reports current VERIFY state + dumps logs so we
+# can iterate remotely.
 on:
   workflow_dispatch:
   push:
@@ -11,25 +12,34 @@ on:
 jobs:
   provision:
     runs-on: [self-hosted, compute-monster]
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run resumable bootstrap
-        run: sudo bash provision/bootstrap.sh
+      - name: Pull latest + kick provisioning (detached, survives reboot)
+        run: |
+          sudo git -C /opt/compute-monster pull || true
+          sudo systemd-run --unit cm-provision --collect --no-block \
+            bash /opt/compute-monster/provision/firstboot.sh || true
+          sleep 25
 
-      - name: Verify
-        run: sudo bash provision/VERIFY.sh
+      - name: Verify current state (non-fatal)
+        run: sudo bash /opt/compute-monster/provision/VERIFY.sh || true
 
-      - name: Collect logs
+      - name: Dump provisioning logs
         if: always()
         run: |
-          mkdir -p _artifacts
-          cp -r provision/log _artifacts/ 2>/dev/null || true
-          journalctl -u compute-monster-provision --no-pager > _artifacts/provision-journal.log 2>/dev/null || true
+          echo "===== per-step logs ====="
+          sudo tail -n +1 /opt/compute-monster/provision/log/* 2>/dev/null || echo "(none yet)"
+          echo "===== service journal ====="
+          sudo journalctl -u compute-monster-provision -u cm-provision --no-pager 2>/dev/null | tail -200 || true
+          echo "===== nvidia / rgb quick check ====="
+          nvidia-smi -L 2>&1 || echo "nvidia-smi: not ready"
+          sudo openrgb --list-devices 2>&1 | head -20 || echo "openrgb: not installed yet"
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: provision-logs
-          path: _artifacts/
+          path: /opt/compute-monster/provision/log/
+          if-no-files-found: ignore

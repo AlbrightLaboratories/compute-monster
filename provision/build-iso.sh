@@ -61,6 +61,9 @@ autoinstall:
     - cp -r /cdrom/provision /target/opt/compute-monster/ 2>/dev/null || true
     - chmod +x /target/opt/compute-monster-provision/*.sh /target/opt/compute-monster-provision/steps/*.sh 2>/dev/null || true
     - chmod +x /target/opt/compute-monster/provision/*.sh /target/opt/compute-monster/provision/steps/*.sh 2>/dev/null || true
+    # Passwordless sudo for the runner user (installer runs as root here).
+    - "echo '$ACCOUNT ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/99-compute-monster-runner"
+    - chmod 440 /target/etc/sudoers.d/99-compute-monster-runner
     # Self-healing resumable provisioner service (runs on boot until complete).
     - install -m 0644 /cdrom/provision/systemd/compute-monster-provision.service /target/etc/systemd/system/compute-monster-provision.service
     - curtin in-target --target=/target -- systemctl enable compute-monster-provision.service
