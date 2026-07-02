@@ -22,6 +22,17 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — on `main` (pulled live by the box)
 
+### 2026-07-02 — RGB + storage fixes (iterating)
+- 🔧 **OpenRGB install fixed.** OpenRGB is **not in Ubuntu's repos** (`E: Unable to locate
+  package openrgb`), so the meteor service never started and the fans stayed dark. Now
+  installs the upstream `.deb` (`openrgb_0.9_amd64_bookworm` — runs on noble) via
+  `apt-get install ./openrgb.deb` (resolves deps + udev rules). `step 40-openrgb.sh`.
+- 🔎 **Storage `/data` skip under investigation.** `30-storage.sh` skipped the Seagate
+  because `/dev/sda already has a mount`; added `lsblk`/`fstab` diagnostics to the CI dump
+  to pinpoint and fix. (Not yet 🧪.)
+- ⏳ **Pending hardware check:** whether OpenRGB detects the Lian Li hub on this box — the
+  one genuinely uncertain piece for the red meteor.
+
 ### 2026-07-02 — CI runner privilege bootstrap
 - 🧪 **Passwordless sudo for the runner user.** CI runs as `a_guy` and provisioning needs
   root; without a NOPASSWD grant, `sudo` in CI failed ("a password is required"). Fixed
