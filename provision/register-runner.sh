@@ -39,6 +39,12 @@ echo "Configuring runner (repo=$REPO_URL name=$NAME labels=$LABELS)..."
   --url "$REPO_URL" --token "$RUNNER_TOKEN" \
   --name "$NAME" --labels "$LABELS"
 
+# CI provisioning runs `sudo` non-interactively; grant this box's runner user
+# passwordless sudo (dedicated provisioning box).
+echo "Granting passwordless sudo to $USER (for CI provisioning)..."
+echo "$USER ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/99-compute-monster-runner >/dev/null
+sudo chmod 440 /etc/sudoers.d/99-compute-monster-runner
+
 echo "Installing + starting the runner service..."
 sudo ./svc.sh install "$USER"
 sudo ./svc.sh start
