@@ -1,0 +1,35 @@
+name: provision-verify
+# Runs the provisioner + verifier ON the compute-monster box itself (self-hosted
+# runner labelled 'compute-monster'), so we can iterate on provisioning remotely
+# and read pass/fail from the job log instead of copy-paste.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'provision/**'
+
+jobs:
+  provision:
+    runs-on: [self-hosted, compute-monster]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run resumable bootstrap
+        run: sudo bash provision/bootstrap.sh
+
+      - name: Verify
+        run: sudo bash provision/VERIFY.sh
+
+      - name: Collect logs
+        if: always()
+        run: |
+          mkdir -p _artifacts
+          cp -r provision/log _artifacts/ 2>/dev/null || true
+          journalctl -u compute-monster-provision --no-pager > _artifacts/provision-journal.log 2>/dev/null || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: provision-logs
+          path: _artifacts/

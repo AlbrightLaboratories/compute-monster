@@ -1,0 +1,13 @@
+# build/runtime artifacts
+provision/log/
+*.iso
+*.tar.gz
+actions-runner/
+
+# python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+._*

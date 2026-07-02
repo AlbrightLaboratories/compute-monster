@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Register this box as a GitHub Actions self-hosted runner labelled 'compute-monster'
+# so the provision-verify workflow can run on it and we can iterate remotely.
+#
+# 1) On a machine with gh, mint a short-lived registration token:
+#      gh api -X POST repos/AlbrightLaboratories/compute-monster/actions/runners/registration-token -q .token
+# 2) On the box (as the login user, NOT root):
+#      RUNNER_TOKEN=<token> bash provision/register-runner.sh
+set -euo pipefail
+
+REPO_URL="${REPO_URL_HTTP:-https://github.com/AlbrightLaboratories/compute-monster}"
+: "${RUNNER_TOKEN:?set RUNNER_TOKEN=... (gh api ... registration-token -q .token)}"
+LABELS="${LABELS:-compute-monster}"
+NAME="${RUNNER_NAME:-compute-monster}"
+DIR="${RUNNER_DIR:-$HOME/actions-runner}"
+
+[[ $EUID -ne 0 ]] || { echo "Do NOT run as root — run as your login user (a_guy)."; exit 1; }
+
+# Latest runner version.
+VER="$(curl -fsSL https://api.github.com/repos/actions/runner/releases/latest | grep -oE '"tag_name": *"v[0-9.]+"' | grep -oE '[0-9.]+' | head -1)"
+[[ -n "$VER" ]] || VER="2.320.0"
+
+mkdir -p "$DIR"; cd "$DIR"
+if [[ ! -x ./run.sh ]]; then
+  curl -fsSL -o runner.tar.gz \
+    "https://github.com/actions/runner/releases/download/v${VER}/actions-runner-linux-x64-${VER}.tar.gz"
+  tar xzf runner.tar.gz && rm runner.tar.gz
+fi
+
+./config.sh --unattended --replace \
+  --url "$REPO_URL" --token "$RUNNER_TOKEN" \
+  --name "$NAME" --labels "$LABELS"
+
+sudo ./svc.sh install "$USER"
+sudo ./svc.sh start
+echo "Runner '$NAME' registered + running (labels: $LABELS)."

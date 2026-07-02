@@ -1,0 +1,10 @@
+Item,Component,Product,Condition,Price,Shipping,Line Total,Seller / Listing Notes,Compatibility
+1,Motherboard,ASUS ROG STRIX X570-E GAMING WIFI II,Factory Serviced / Pre-Owned (5.0 stars, 3 ratings),219.99,0.00,219.99,Buy It Now; free delivery; US,OK - AM4 ROG flagship
+2,Memory (option A),SK hynix 128GB DDR4 LRDIMM (HMAA8GL7AMR4N-VK),Open Box (5.0 stars, 1 rating),500.00,5.48,505.48,Buy It Now; US,"INCOMPATIBLE - LRDIMM (load-reduced ECC server RAM). X570-E takes UNBUFFERED UDIMM only. Will NOT POST."
+3,Memory (option B),Corsair VENGEANCE RGB PRO 64GB (4x16GB) DDR4-3600 C18,Open Box (4.0 stars, 4 ratings),300.00,4.47,304.47,Best Offer; US,"OK type (UDIMM) but only 64GB - half your 128GB target"
+4,CPU,AMD Ryzen 9 5900X (4.8GHz, 12C/24T, AM4),Pre-Owned (5.0 stars, 138 ratings),200.00,0.00,200.00,Best Offer; free delivery; US,OK - 12 cores meets 10+ requirement
+,,,,,,,,
+,SUBTOTAL as listed (mobo + 128GB LRDIMM + CPU),,,919.99,5.48,925.47,,"NOTE: LRDIMM won't work - see item 2"
+,SUBTOTAL viable (mobo + Corsair 64GB + CPU),,,719.99,4.47,724.46,,"Only 64GB though"
+,,,,,,,,
+,SUPERSEDED — NOT the path taken,,,,,,"Actual build = MSI B550-A PRO + Ryzen 7 5800X + 64GB DDR4 + RTX 3060 Ti + 1TB NVMe + 2TB Seagate (see 01-hardware-bom.md). This CSV is kept only as a record of the sourcing pass and the LRDIMM-won't-POST lesson.",

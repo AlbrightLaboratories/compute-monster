@@ -1,0 +1,55 @@
+#cloud-config
+# compute-monster unattended install (Ubuntu 24.04 Server autoinstall / Subiquity).
+# Baked into the custom restore ISO by build-iso.sh. On boot it wipes the target
+# disk, installs Ubuntu, copies the provision bundle, and arms a first-boot service
+# that runs bootstrap.sh (drivers, RGB meteor, WOL, k8s prereqs).
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard: {layout: us}
+
+  # --- TARGET DISK ---
+  # Installs to the 1TB NVMe and WIPES it. The 2TB Seagate is left alone and gets
+  # mounted later by steps/30-storage.sh. VERIFY the path matches YOUR NVMe.
+  storage:
+    config:
+      - {type: disk, id: nvme, path: /dev/nvme0n1, ptable: gpt, wipe: superblock-recursive, grub_device: false}
+      - {type: partition, id: efi,  device: nvme, size: 1G,   flag: boot, grub_device: true}
+      - {type: partition, id: root, device: nvme, size: -1}
+      - {type: format, id: efifs, volume: efi, fstype: fat32}
+      - {type: format, id: rootfs, volume: root, fstype: ext4}
+      - {type: mount, id: mroot, device: rootfs, path: /}
+      - {type: mount, id: mefi,  device: efifs, path: /boot/efi}
+
+  identity:
+    hostname: compute-monster
+    username: corey
+    # Generate: openssl passwd -6 'yourpassword'  — then paste the hash here.
+    password: "$6$REPLACE_ME_WITH_A_HASH$0000000000000000000000000000000000000000000000000000000000000000000000"
+
+  ssh:
+    install-server: true
+    allow-pw: true
+
+  packages: [curl, git, ethtool, unzip]
+
+  late-commands:
+    # Copy the baked-in provision bundle into the installed system.
+    - mkdir -p /target/opt/compute-monster-provision
+    - cp -r /cdrom/provision/* /target/opt/compute-monster-provision/ 2>/dev/null || true
+    - chmod +x /target/opt/compute-monster-provision/bootstrap.sh /target/opt/compute-monster-provision/steps/*.sh
+    # Install a one-shot first-boot service that runs the full bootstrap once.
+    - |
+      cat > /target/etc/systemd/system/compute-monster-firstboot.service <<'UNIT'
+      [Unit]
+      Description=compute-monster first-boot provisioning
+      After=network-online.target
+      Wants=network-online.target
+      ConditionPathExists=!/var/lib/compute-monster-provisioned
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/bin/bash /opt/compute-monster-provision/bootstrap.sh
+      ExecStartPost=/usr/bin/touch /var/lib/compute-monster-provisioned
+      UNIT
+    - curtin in-target --target=/target -- systemctl enable compute-monster-firstboot.service

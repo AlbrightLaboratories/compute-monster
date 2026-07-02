@@ -1,0 +1,16 @@
+[Unit]
+Description=compute-monster self-healing provisioner (runs until complete)
+After=network-online.target
+Wants=network-online.target
+# Stops running once fully provisioned.
+ConditionPathExists=!/var/lib/compute-monster/provisioned
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash /opt/compute-monster/provision/firstboot.sh
+# If a step needs a reboot, firstboot triggers it; this unit re-runs next boot.
+TimeoutStartSec=3600
+
+[Install]
+WantedBy=multi-user.target
