@@ -35,7 +35,11 @@ jobs:
           sudo journalctl -u compute-monster-provision -u cm-provision --no-pager 2>/dev/null | tail -200 || true
           echo "===== nvidia / rgb quick check ====="
           nvidia-smi -L 2>&1 || echo "nvidia-smi: not ready"
-          sudo openrgb --list-devices 2>&1 | head -20 || echo "openrgb: not installed yet"
+          sudo openrgb --list-devices 2>&1 | head -30 || echo "openrgb: not installed yet"
+          echo "===== block devices / storage ====="
+          lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINT 2>&1 || true
+          echo "--- fstab data ---"; grep -i data /etc/fstab 2>&1 || true
+          echo "--- rgb services ---"; systemctl is-active openrgb-server openrgb-meteor 2>&1 || true
 
       - uses: actions/upload-artifact@v4
         if: always()

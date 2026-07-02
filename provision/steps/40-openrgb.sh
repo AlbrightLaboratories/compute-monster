@@ -9,13 +9,16 @@ if [[ "${ENABLE_RGB_METEOR:-false}" != "true" ]]; then
   echo "ENABLE_RGB_METEOR!=true — skipping RGB."; exit 0
 fi
 
-# OpenRGB (universe) — ships the udev rules that give non-root access to the hub.
-add-apt-repository -y universe || true
-apt-get update -y
-apt-get install -y openrgb || {
-  echo "apt openrgb failed; grab the .deb from https://openrgb.org and 'apt install ./OpenRGB*.deb'." >&2
-  exit 1
-}
+# OpenRGB is NOT in Ubuntu's repos — install the upstream .deb (the Debian bookworm
+# build runs fine on Ubuntu 24.04/noble). apt resolves its deps + installs udev rules.
+OPENRGB_DEB_URL="${OPENRGB_DEB_URL:-https://openrgb.org/releases/release_0.9/openrgb_0.9_amd64_bookworm_b5f46e3.deb}"
+if ! command -v openrgb >/dev/null; then
+  tmp="$(mktemp -d)"
+  curl -fsSL -o "$tmp/openrgb.deb" "$OPENRGB_DEB_URL"
+  apt-get -o DPkg::Lock::Timeout=300 install -y "$tmp/openrgb.deb"
+  rm -rf "$tmp"
+fi
+command -v openrgb >/dev/null || { echo "openrgb install failed ($OPENRGB_DEB_URL)"; exit 1; }
 udevadm control --reload-rules && udevadm trigger || true
 
 APP=/opt/openrgb-meteor
