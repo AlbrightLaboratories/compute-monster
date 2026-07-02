@@ -11,15 +11,21 @@ fi
 
 # OpenRGB is NOT in Ubuntu's repos — install the upstream .deb (the Debian bookworm
 # build runs fine on Ubuntu 24.04/noble). apt resolves its deps + installs udev rules.
-OPENRGB_DEB_URL="${OPENRGB_DEB_URL:-https://openrgb.org/releases/release_0.9/openrgb_0.9_amd64_bookworm_b5f46e3.deb}"
-if ! command -v openrgb >/dev/null; then
+# Use 1.0rc3: stable 0.9 does NOT detect the Lian Li SL-Infinity v1.4 hub (0cf2:a102),
+# only the Corsair RAM; the newer build has the SL-Infinity detector.
+OPENRGB_DEB_URL="${OPENRGB_DEB_URL:-https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_candidate_1.0rc3/openrgb_1.0rc3_amd64_bookworm_6fbcf62.deb}"
+want_ver="1.0rc3"
+have_ver="$(openrgb --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(rc[0-9]+)?' | head -1 || true)"
+if [[ "$have_ver" != "$want_ver" ]]; then
+  echo "installing OpenRGB $want_ver (have: ${have_ver:-none})"
   tmp="$(mktemp -d)"
   curl -fsSL -o "$tmp/openrgb.deb" "$OPENRGB_DEB_URL"
-  apt-get -o DPkg::Lock::Timeout=300 install -y "$tmp/openrgb.deb"
+  apt-get -o DPkg::Lock::Timeout=300 install -y --allow-downgrades "$tmp/openrgb.deb"
   rm -rf "$tmp"
 fi
 command -v openrgb >/dev/null || { echo "openrgb install failed ($OPENRGB_DEB_URL)"; exit 1; }
 udevadm control --reload-rules && udevadm trigger || true
+sleep 2  # let udev settle so the hub is accessible
 
 APP=/opt/openrgb-meteor
 mkdir -p "$APP"
@@ -67,8 +73,11 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable --now openrgb-server.service
-systemctl enable --now openrgb-meteor.service
+systemctl enable openrgb-server.service openrgb-meteor.service
+# restart (not just --now) so an upgraded binary + config are picked up
+systemctl restart openrgb-server.service
+sleep 2
+systemctl restart openrgb-meteor.service
 
 echo
 echo "RGB services up. Check: systemctl status openrgb-meteor"

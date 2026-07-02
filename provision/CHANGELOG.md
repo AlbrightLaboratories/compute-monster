@@ -27,11 +27,12 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
   package openrgb`), so the meteor service never started. Now installs the upstream `.deb`
   (`openrgb_0.9_amd64_bookworm` — runs on noble). Services now **active**; VERIFY reports
   "meteor animating". `step 40-openrgb.sh`.
-- ❌ **BUT the fans are still dark — Lian Li UNI hub NOT detected by OpenRGB 0.9.**
-  `openrgb --list-devices` shows only **Corsair Dominator Platinum RAM**; the meteor falls
-  back to animating the RAM. Root cause under investigation — the L-Connect export showed the
-  hub as HID `vid_0cf2 pid_a102` (SL-Infinity). Next: confirm the hub is on the USB bus
-  (`lsusb`) and check whether OpenRGB 0.9 supports pid a102 or a newer build is needed.
+- 🔧 **Fans dark → OpenRGB version bump to 1.0rc3.** `lsusb` confirms the hub IS on the bus
+  (`0cf2:a102 ENE Technology LianLi-SL-infinity-v1.4`), so it's not a cable — **OpenRGB 0.9
+  simply lacks the SL-Infinity v1.4 detector** (it saw only the Corsair RAM). Switched
+  `40-openrgb.sh` to install **OpenRGB 1.0rc3** (version-aware, `--allow-downgrades`) and to
+  **restart** the services so the new binary re-detects. Also seen on the bus: MSI Mystic
+  Light (`1462:7c56`). (Pending 🧪 confirmation that 1.0rc3 lists the Lian Li hub.)
 - ❌ **2 TB Seagate not present.** `lsblk` shows only the NVMe + the FAT32 USB (sda, at
   /mnt/usb) — no 2 TB disk. Storage step wrongly picked the USB and a stale `/data` fstab
   entry (bad UUID) exists. Needs: confirm the Seagate is cabled; harden `30-storage.sh` to
