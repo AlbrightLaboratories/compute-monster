@@ -6,6 +6,9 @@
 set -uo pipefail
 source "$HERE/config.env"
 export DEBIAN_FRONTEND=noninteractive
+# Runs under a systemd transient unit with no $HOME — the ollama CLI panics
+# without it ("panic: $HOME is not defined").
+export HOME="${HOME:-/root}"
 
 # --- Install Ollama (official installer; idempotent) ---
 if ! command -v ollama >/dev/null; then
@@ -26,8 +29,11 @@ mkdir -p /var/lib/compute-monster
 
 test_model() {
   local m="$1"
-  echo "--- pulling $m ---"
-  ollama pull "$m" || { echo "$m: PULL FAILED" >> "$REVIEW"; return 1; }
+  echo "--- pulling $m (via API) ---"
+  # API pull avoids CLI env quirks; blocks until complete with stream=false.
+  curl -fsS --max-time 900 http://127.0.0.1:11434/api/pull \
+    -d "{\"model\":\"$m\",\"stream\":false}" >/dev/null \
+    || { echo "$m: PULL FAILED" >> "$REVIEW"; return 1; }
   echo "--- generating with $m ---"
   local out
   out="$(curl -fsS http://127.0.0.1:11434/api/generate \

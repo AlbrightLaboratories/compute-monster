@@ -22,6 +22,11 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — on `main` (pulled live by the box)
 
+### 2026-07-02 — Ollama headless fix
+- 🔧 **Model pulls failed headless:** `ollama pull` panics under the systemd transient unit
+  (`panic: $HOME is not defined`). Step 80 now exports `HOME` and pulls via the **HTTP API**
+  (`/api/pull`, stream=false, 15-min cap) — immune to CLI env quirks. (Pending 🧪.)
+
 ### 2026-07-02 — software all-green; smallest-LLM phase begins
 - 🧪 **VERIFY marker path fixed** (checked old `/var/lib/compute-monster-provisioned`; new
   bootstrap writes `/var/lib/compute-monster/provisioned`). Software checks now **all
