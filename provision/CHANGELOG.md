@@ -22,6 +22,14 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — on `main` (pulled live by the box)
 
+### 2026-07-02 — 🧪 smallest-model review COMPLETE
+- 🧪 **Both candidates generate on the RTX 3060 Ti (8192 MiB):**
+  `qwen2.5:0.5b` (~0.4 GB) → GENERATES ('OK') — **smallest that runs okay**;
+  `llama3.2:1b` (~1.3 GB) → GENERATES ('OK') — **recommended smallest-useful**.
+  VERIFY LLM check passes. Review file: `/var/lib/compute-monster/model-review.txt`.
+- Machine state: **all software checks green**; only the 2 `/data` checks fail (Seagate
+  physically absent — hardware cabling at the box).
+
 ### 2026-07-02 — Ollama headless fix
 - 🔧 **Model pulls failed headless:** `ollama pull` panics under the systemd transient unit
   (`panic: $HOME is not defined`). Step 80 now exports `HOME` and pulls via the **HTTP API**
