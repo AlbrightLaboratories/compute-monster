@@ -15,9 +15,9 @@ fi
 # only the Corsair RAM; the newer build has the SL-Infinity detector.
 OPENRGB_DEB_URL="${OPENRGB_DEB_URL:-https://codeberg.org/OpenRGB/OpenRGB/releases/download/release_candidate_1.0rc3/openrgb_1.0rc3_amd64_bookworm_6fbcf62.deb}"
 want_ver="1.0rc3"
-have_ver="$(openrgb --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(rc[0-9]+)?' | head -1 || true)"
-if [[ "$have_ver" != "$want_ver" ]]; then
-  echo "installing OpenRGB $want_ver (have: ${have_ver:-none})"
+# NB: 1.0rc3 reports itself as "OpenRGB 0.9+ (1.0rc3)" — match the rc token anywhere.
+if ! openrgb --version 2>/dev/null | grep -q "$want_ver"; then
+  echo "installing OpenRGB $want_ver (have: $(openrgb --version 2>/dev/null | head -1 || echo none))"
   tmp="$(mktemp -d)"
   curl -fsSL -o "$tmp/openrgb.deb" "$OPENRGB_DEB_URL"
   apt-get -o DPkg::Lock::Timeout=300 install -y --allow-downgrades "$tmp/openrgb.deb"

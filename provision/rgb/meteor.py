@@ -80,6 +80,13 @@ def run():
     if not devs:
         raise SystemExit("no RGB devices found")
 
+    # Fans per hub channel (docs/09: top=2, Back=3, right=3, dawn=3) and LEDs per
+    # SL-Infinity 120 fan (inner+outer rings). Used when the SDK reports no
+    # usable leds_max for the resizable channel zones.
+    FANS_PER_CHANNEL = [int(x) for x in
+                        os.environ.get("FANS_PER_CHANNEL", "2,3,3,3").split(",")]
+    LEDS_PER_FAN = int(os.environ.get("LEDS_PER_FAN", "40"))
+
     def prep(d):
         """Direct mode + resize resizable zones (Lian Li hub channels default to
         0 LEDs until told how many fans are chained — leaving them 0 means the
@@ -89,14 +96,22 @@ def run():
         except Exception:
             pass
         resized = False
-        for z in d.zones:
+        for zi, z in enumerate(d.zones):
+            zmax = getattr(z, "leds_max", 0) or 0
+            zmin = getattr(z, "leds_min", 0)
+            print(f"zone[{zi}] {z.name!r}: leds={len(z.leds)} min={zmin} max={zmax}",
+                  flush=True)
+            want = zmax
+            if not want and zi < len(FANS_PER_CHANNEL):
+                want = FANS_PER_CHANNEL[zi] * LEDS_PER_FAN
             try:
-                zmax = getattr(z, "leds_max", 0) or 0
-                if zmax and len(z.leds) < zmax:
-                    z.resize(zmax)
+                if want and len(z.leds) < want:
+                    z.resize(want)
                     resized = True
+                    print(f"zone[{zi}] resized -> {want}", flush=True)
             except Exception as e:
-                print(f"zone resize failed ({d.name}/{z.name}): {e}", flush=True)
+                print(f"zone resize failed ({d.name}/{z.name} -> {want}): {e}",
+                      flush=True)
         return resized
 
     if any(prep(d) for d in devs):
