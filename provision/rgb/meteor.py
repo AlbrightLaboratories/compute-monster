@@ -97,6 +97,9 @@ def run():
                     meteor.colors = [RGBColor(*color)] * n
                 except Exception as e:
                     print(f"{d.name}: meteor colors not settable: {e}", flush=True)
+                # Deliberately do NOT touch brightness — semantics differ across
+                # hub revisions; the hub's own default (what L-Connect used) is
+                # correct. Only set colors + speed.
                 try:
                     if getattr(meteor, "speed_max", None) is not None:
                         smin = meteor.speed_min or 0
