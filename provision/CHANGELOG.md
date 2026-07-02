@@ -22,6 +22,13 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — on `main` (pulled live by the box)
 
+### 2026-07-02 — fans still dark: hub zones were 0 LEDs
+- 🔧 **Operator reports no red fans despite "animating" log.** Root cause hypothesis:
+  OpenRGB models the Lian Li hub's 4 channels as **resizable zones defaulting to 0 LEDs**;
+  the animator was driving an empty LED list (software green, fans dark). `meteor.py` now
+  **resizes every resizable zone to max**, reconnects, **logs actual LED counts** per
+  device, and hard-fails if all targets still have 0 LEDs (no more silent success).
+
 ### 2026-07-02 — 🧪 smallest-model review COMPLETE
 - 🧪 **Both candidates generate on the RTX 3060 Ti (8192 MiB):**
   `qwen2.5:0.5b` (~0.4 GB) → GENERATES ('OK') — **smallest that runs okay**;

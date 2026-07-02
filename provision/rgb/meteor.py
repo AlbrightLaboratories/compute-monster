@@ -79,12 +79,36 @@ def run():
     devs = target_devices(client)
     if not devs:
         raise SystemExit("no RGB devices found")
-    for d in devs:
+
+    def prep(d):
+        """Direct mode + resize resizable zones (Lian Li hub channels default to
+        0 LEDs until told how many fans are chained — leaving them 0 means the
+        animator runs happily while the fans stay dark)."""
         try:
             d.set_mode("Direct")
         except Exception:
-            pass  # some devices expose it differently; direct set still works
-    print(f"animating meteor on: {[d.name for d in devs]}", flush=True)
+            pass
+        resized = False
+        for z in d.zones:
+            try:
+                zmax = getattr(z, "leds_max", 0) or 0
+                if zmax and len(z.leds) < zmax:
+                    z.resize(zmax)
+                    resized = True
+            except Exception as e:
+                print(f"zone resize failed ({d.name}/{z.name}): {e}", flush=True)
+        return resized
+
+    if any(prep(d) for d in devs):
+        # zone sizes changed — reconnect so LED lists reflect the new sizes
+        time.sleep(2)
+        client = connect()
+        devs = target_devices(client)
+        for d in devs:
+            prep(d)
+    print(f"animating meteor on: {[(d.name, len(d.leds)) for d in devs]}", flush=True)
+    if all(len(d.leds) == 0 for d in devs):
+        raise SystemExit("target devices have 0 LEDs after resize — check hub zones")
 
     pos = [0 for _ in devs]
     while True:
