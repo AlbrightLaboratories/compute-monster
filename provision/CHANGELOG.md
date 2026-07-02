@@ -22,6 +22,18 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — on `main` (pulled live by the box)
 
+### 2026-07-02 — RGB root cause found: no "Direct" mode; switched to NATIVE hub Meteor
+- 🔧 **Why the fans never lit:** the Lian Li hub exposes **no "Direct" mode** — every
+  `set_mode("Direct")` failed (silently, until we logged it), so all animator frames were
+  ignored. Its writable mode is **"Custom"**; its mode list also includes a **native
+  hardware "Meteor"**.
+- 🔧 **Fix — use the hub's native Meteor (red):** hardware-rendered across ALL connected
+  fans (zone sizes irrelevant), zero software dependency, persists like L-Connect hardware
+  effects. `meteor.py` sets native Meteor + red colors + speed and exits clean; the Custom
+  software animator remains as fallback (`NATIVE_METEOR=0`).
+- Box logged `native mode active — no software animation needed; exiting OK`.
+  (Awaiting operator visual confirm → 🧪.)
+
 ### 2026-07-02 — fans still dark: hub zones were 0 LEDs
 - 🔧 **Step-asset deps now hashed** (steps/<n>.deps manifests): editing rgb/meteor.py did NOT re-run step 40 (only the step script was hashed), so the zone-resize fix never deployed. Added 40.deps → asset edits now redeploy.
 - 🔧 **Operator reports no red fans despite "animating" log.** Root cause hypothesis:
