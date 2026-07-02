@@ -80,12 +80,12 @@ def run():
     if not devs:
         raise SystemExit("no RGB devices found")
 
-    # Fans per hub channel (docs/09: top=2, Back=3, right=3, dawn=3) and LEDs per
-    # SL-Infinity 120 fan (inner+outer rings). Used when the SDK reports no
-    # usable leds_max for the resizable channel zones.
-    FANS_PER_CHANNEL = [int(x) for x in
-                        os.environ.get("FANS_PER_CHANNEL", "2,3,3,3").split(",")]
+    # We don't know which of the hub's 8 channels the 4 fan groups are cabled to
+    # (only Channel 1 accepted a guessed resize), so size EVERY channel to full
+    # capacity — empty ports stay dark, populated ones light. Trim later.
     LEDS_PER_FAN = int(os.environ.get("LEDS_PER_FAN", "40"))
+    MAX_FANS_PER_CHANNEL = int(os.environ.get("MAX_FANS_PER_CHANNEL", "4"))
+    CHANNEL_WANT = LEDS_PER_FAN * MAX_FANS_PER_CHANNEL
 
     def prep(d):
         """Direct mode + resize resizable zones (Lian Li hub channels default to
@@ -101,9 +101,7 @@ def run():
             zmin = getattr(z, "leds_min", 0)
             print(f"zone[{zi}] {z.name!r}: leds={len(z.leds)} min={zmin} max={zmax}",
                   flush=True)
-            want = zmax
-            if not want and zi < len(FANS_PER_CHANNEL):
-                want = FANS_PER_CHANNEL[zi] * LEDS_PER_FAN
+            want = zmax or CHANNEL_WANT
             try:
                 if want and len(z.leds) < want:
                     z.resize(want)
