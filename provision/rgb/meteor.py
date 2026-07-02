@@ -80,6 +80,41 @@ def run():
     if not devs:
         raise SystemExit("no RGB devices found")
 
+    # ---- PREFERRED PATH: the hub's NATIVE hardware 'Meteor' mode ----
+    # The Lian Li hub renders this itself across every connected fan (zone sizes
+    # irrelevant), needs no running software, and persists like L-Connect's
+    # hardware effects. This IS the documented docs/09 look.
+    if os.environ.get("NATIVE_METEOR", "1") == "1":
+        native_ok = False
+        for d in devs:
+            try:
+                meteor = next((m for m in d.modes if m.name.lower() == "meteor"), None)
+                if meteor is None:
+                    print(f"{d.name}: no native Meteor mode", flush=True)
+                    continue
+                try:
+                    n = getattr(meteor, "colors_max", 1) or 1
+                    meteor.colors = [RGBColor(*color)] * n
+                except Exception as e:
+                    print(f"{d.name}: meteor colors not settable: {e}", flush=True)
+                try:
+                    if getattr(meteor, "speed_max", None) is not None:
+                        smin = meteor.speed_min or 0
+                        smax = meteor.speed_max or 100
+                        meteor.speed = smin + int((smax - smin) * speed / 100)
+                except Exception as e:
+                    print(f"{d.name}: meteor speed not settable: {e}", flush=True)
+                d.set_mode(meteor)
+                print(f"{d.name}: NATIVE Meteor set (red). Hardware-rendered on all "
+                      f"connected fans.", flush=True)
+                native_ok = True
+            except Exception as e:
+                print(f"{d.name}: native meteor failed: {e}", flush=True)
+        if native_ok:
+            print("native mode active — no software animation needed; exiting OK",
+                  flush=True)
+            return
+
     # We don't know which of the hub's 8 channels the 4 fan groups are cabled to
     # (only Channel 1 accepted a guessed resize), so size EVERY channel to full
     # capacity — empty ports stay dark, populated ones light. Trim later.
