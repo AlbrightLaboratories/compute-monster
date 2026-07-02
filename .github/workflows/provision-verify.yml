@@ -37,7 +37,7 @@ jobs:
           nvidia-smi -L 2>&1 || echo "nvidia-smi: not ready"
           sudo openrgb --list-devices 2>&1 | head -120 || echo "openrgb: not installed yet"
           echo "--- meteor targets ---"
-          sudo journalctl -u openrgb-meteor --no-pager 2>/dev/null | grep -iE "animating|error|no rgb" | tail -5 || true
+          sudo journalctl -u openrgb-meteor --no-pager 2>/dev/null | grep -iE "animating|error|no rgb|zone" | tail -20 || true
           echo "===== block devices / storage ====="
           lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINT 2>&1 || true
           echo "--- fstab data ---"; grep -i data /etc/fstab 2>&1 || true
