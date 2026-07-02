@@ -114,13 +114,14 @@ def run():
                       flush=True)
         return resized
 
-    if any(prep(d) for d in devs):
-        # zone sizes changed — reconnect so LED lists reflect the new sizes
+    # Resize → reconnect until stable: each channel's resize only shows up in a
+    # fresh controller read, and channels can land on different rounds.
+    for _ in range(4):
+        if not any(prep(d) for d in devs):
+            break
         time.sleep(2)
         client = connect()
         devs = target_devices(client)
-        for d in devs:
-            prep(d)
     print(f"animating meteor on: {[(d.name, len(d.leds)) for d in devs]}", flush=True)
     if all(len(d.leds) == 0 for d in devs):
         raise SystemExit("target devices have 0 LEDs after resize — check hub zones")
