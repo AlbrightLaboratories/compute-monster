@@ -38,10 +38,10 @@ jobs:
           sudo openrgb --list-devices 2>&1 | head -120 || echo "openrgb: not installed yet"
           echo "--- meteor targets ---"
           sudo journalctl -u openrgb-meteor --no-pager 2>/dev/null | grep -iE "animating|error|no rgb|zone|mode" | tail -30 || true
-          echo "--- HUB DIAG: read real state + visible sequence (red 10s / rainbow 10s / meteor red) ---"
+          echo "--- HUB DIAG2: brightness-inversion sweep (Static RED @ 0/2/4, 20s each) ---"
           sudo systemctl stop openrgb-meteor || true
-          sudo install -m 0755 provision/rgb/diag.py /opt/openrgb-meteor/diag.py || true
-          sudo /opt/openrgb-meteor/venv/bin/python /opt/openrgb-meteor/diag.py 2>&1 || true
+          sudo install -m 0755 provision/rgb/diag2.py /opt/openrgb-meteor/diag2.py || true
+          sudo /opt/openrgb-meteor/venv/bin/python /opt/openrgb-meteor/diag2.py 2>&1 || true
           echo "===== block devices / storage ====="
           lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINT 2>&1 || true
           echo "--- fstab data ---"; grep -i data /etc/fstab 2>&1 || true
