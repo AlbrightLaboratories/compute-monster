@@ -9,8 +9,11 @@ info(){ printf "  ---- %s\n" "$1"; }
 hdr(){ printf "\n== %s ==\n" "$1"; }
 
 hdr "0. first-boot provisioning"
-[ -f /var/lib/compute-monster-provisioned ] && pass "bootstrap completed" || fail "bootstrap marker missing"
-systemctl is-active --quiet compute-monster-firstboot && pass "firstboot service ok" || info "firstboot not active (ok if run manually)"
+if [ -f /var/lib/compute-monster/provisioned ] || [ -f /var/lib/compute-monster-provisioned ]; then
+  pass "bootstrap completed"
+else
+  fail "bootstrap marker missing"
+fi
 
 hdr "1. identity / OS"
 [ "$(hostnamectl --static)" = "compute-monster" ] && pass "hostname" || fail "hostname != compute-monster"
