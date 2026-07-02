@@ -24,6 +24,22 @@ if ! openrgb --version 2>/dev/null | grep -q "$want_ver"; then
   rm -rf "$tmp"
 fi
 command -v openrgb >/dev/null || { echo "openrgb install failed ($OPENRGB_DEB_URL)"; exit 1; }
+
+# 1.0rc3 detects the SL-Infinity v1.4 hub but its LED writes have no effect on
+# this firmware (fans stay on hub-default). Use the MASTER pipeline build for
+# the server — post-rc3 protocol fixes. (.deb stays for udev rules + CLI.)
+MASTER_URL="https://gitlab.com/CalcProgrammer1/OpenRGB/-/jobs/artifacts/master/download?job=Linux%20amd64%20AppImage"
+if [[ ! -x /opt/openrgb-master/squashfs-root/AppRun ]]; then
+  echo "installing OpenRGB master pipeline build..."
+  tmp="$(mktemp -d)"
+  curl -fsSL -o "$tmp/orgb.zip" "$MASTER_URL"
+  (cd "$tmp" && unzip -oq orgb.zip && chmod +x ./*.AppImage && ./*.AppImage --appimage-extract >/dev/null)
+  rm -rf /opt/openrgb-master && mkdir -p /opt/openrgb-master
+  mv "$tmp/squashfs-root" /opt/openrgb-master/squashfs-root
+  rm -rf "$tmp"
+fi
+/opt/openrgb-master/squashfs-root/AppRun --version | head -1 || true
+
 udevadm control --reload-rules && udevadm trigger || true
 sleep 2  # let udev settle so the hub is accessible
 
@@ -49,7 +65,7 @@ cat > /etc/systemd/system/openrgb-server.service <<'EOF'
 Description=OpenRGB SDK server (headless)
 After=multi-user.target
 [Service]
-ExecStart=/usr/bin/openrgb --server --server-port 6742 --noautoconnect
+ExecStart=/opt/openrgb-master/squashfs-root/AppRun --server --server-port 6742 --noautoconnect
 Restart=on-failure
 RestartSec=3
 [Install]
