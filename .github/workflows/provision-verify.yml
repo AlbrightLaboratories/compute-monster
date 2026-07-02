@@ -56,10 +56,15 @@ jobs:
           done
           echo "--- hidraw nodes + perms ---"; ls -la /dev/hidraw* 2>&1
           echo "--- dmesg for the hub ---"; sudo dmesg | grep -iE "0cf2|lianli|ENE Tech" | tail -8 || echo "(nothing)"
-          echo "--- lianli-daemon state ---"
-          sudo -u a_guy XDG_RUNTIME_DIR=/run/user/$(id -u a_guy) systemctl --user is-active lianli-daemon 2>&1 || true
-          sudo -u a_guy XDG_RUNTIME_DIR=/run/user/$(id -u a_guy) journalctl --user -u lianli-daemon --no-pager 2>/dev/null | tail -12 || true
-          echo "--- lianli config ---"; sudo cat /home/a_guy/.config/lianli/config.json 2>/dev/null || echo "(no config yet)"
+          echo "--- lianli-daemon state (as runner user, native) ---"
+          export XDG_RUNTIME_DIR=/run/user/$(id -u)
+          systemctl --user daemon-reload 2>&1 || true
+          systemctl --user enable --now lianli-daemon.service 2>&1 || true
+          sleep 6
+          systemctl --user is-active lianli-daemon 2>&1 || true
+          systemctl --user status lianli-daemon --no-pager 2>&1 | head -8 || true
+          journalctl --user -u lianli-daemon --no-pager 2>&1 | tail -20 || true
+          echo "--- lianli config ---"; cat ~/.config/lianli/config.json 2>/dev/null || echo "(no config yet)"
 
       - uses: actions/upload-artifact@v4
         if: always()
