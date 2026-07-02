@@ -109,7 +109,17 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## ISO images
 
-### image-002 — 2026-07-02  (current — clean-install validation pending)
+### image-003 — 2026-07-02  (current — built, awaiting flash + clean-install proof)
+- 📀 Everything through the smallest-model milestone baked in: hash-aware resumable
+  bootstrap, reboot-aware NVIDIA step, runner passwordless-sudo (installer + step 05),
+  OpenRGB **1.0rc3** (Lian Li SL-Infinity detected), storage hardening (no USB picks,
+  stale-fstab cleanup), gpg idempotency, **Ollama + smallest-model step 80**.
+- sha256 `05aaa2c2fc323309fd4f55c39d10fc177ee3b6c2e6f84b51d4c015cf4a2af427`
+- At `~/Downloads/compute-monster-restore.iso`. Flash: `sudo bash flash-usb.sh`
+  (note: current USB holds `register-here.sh`; flashing overwrites it — it's preserved in
+  the repo at `provision/register-runner.sh` equivalent).
+
+### image-002 — 2026-07-02  (superseded — clean-install validation pending)
 - 📀 Self-healing **pull model**: `compute-monster-provision.service` runs `firstboot.sh`,
   which git-pulls `main` and runs the resumable bootstrap (baked copy = offline fallback).
 - 📀 Resumable, fault-tolerant, **reboot-aware** bootstrap (all the 2026-07-02 fixes above).
