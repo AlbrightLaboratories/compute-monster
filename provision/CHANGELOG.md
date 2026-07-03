@@ -22,6 +22,18 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — post-v1.0.0
 
+### 2026-07-03 — 🎉 MISSION: worker-07 retired; Alidzy joined the cluster
+- 🧪 **Alidzy joined** (kubeadm v1.31.14, bootstrap token minted via kubectl — no
+  control-plane SSH needed; deps: conntrack/socat now implied for joins). Labeled
+  `runner-worker,worker`; **41 pods scheduled**; GPU auto-onboarded by gpu-operator
+  (6 allocatable time-slices on the 3060 Ti).
+- 🧪 **kubeadm-worker07 cordoned → drained → deleted.** All workloads rescheduled Running.
+- 🧪 **Orphaned-PV fix:** `trader-eyes-state` (local-path) was node-pinned to worker07;
+  PVC+PV recreated on live storage, server back 1/1 Running — the runbook's
+  "no orphaned PVs" checklist item, exercised for real.
+- 📌 Operator action: power off the worker-07 Mac Pro hardware (172.100.10.146).
+
+
 ### 2026-07-03 — GitHub runner removed from the node
 - 🧪 Actions runner service uninstalled, files deleted, registration removed (0 runners);
   provision-verify workflow retired. **Direct SSH (key-auth) is the ops channel now.**

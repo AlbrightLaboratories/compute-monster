@@ -68,7 +68,7 @@ Run for each of worker-07, worker-06, worker-04, one node at a time:
 ## Migration checklist
 
 - [ ] Confirm replacement capacity (the new build) is online and joined to the cluster before draining anything.
-- [ ] worker-07 — cordon → drain → delete → power off
+- [x] worker-07 — cordoned → drained → deleted 2026-07-03 (replaced by **alidzy**; power-off pending)
 - [ ] worker-06 — cordon → drain → delete → power off
 - [ ] worker-04 — cordon → drain → delete → power off
 - [ ] Confirm no orphaned PersistentVolumes / storage tied to the retired nodes.
