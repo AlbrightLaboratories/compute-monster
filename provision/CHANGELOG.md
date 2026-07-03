@@ -20,6 +20,16 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ---
 
+## Unreleased — post-v1.0.0
+
+### 2026-07-03 — GPU power cap + train/serve schedule (step 85)
+- 🔧 **160W GPU power cap**, persistent via `gpu-power-cap.service` (persistence mode +
+  `nvidia-smi -pl 160`). Cooler under load (~70-75°C), ~$50/yr at KUA, ~10% training cost.
+  Reversible: `nvidia-smi -pl 200`.
+- 🔧 **Night-train / day-serve timers**: 01:00 stops ollama and runs
+  `/opt/compute-monster/training/train.sh` if present; 07:00 kills training and restarts
+  ollama. Enforces the 8GB-VRAM split (serving and QLoRA can't coexist).
+
 ## Release v1.0.0 — 2026-07-03 — "fans red, box green" (operator-accepted)
 
 **The compute-monster is fully operational and operator-confirmed.** Everything below is
