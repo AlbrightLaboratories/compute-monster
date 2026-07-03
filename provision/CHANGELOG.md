@@ -22,6 +22,11 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — post-v1.0.0
 
+### image-005 — 2026-07-03 (current restore ISO)
+- 📀 v1.0.0 baseline + step 85 (160W GPU cap + train/serve timers). Exactly matches the
+  running box. sha256 `dd24242a9981d59b729e545d48b6c2b03a0f7e6e09802da2a9ba9592aeb93b58`,
+  at `~/Downloads/compute-monster-restore.iso`. Flash: `sudo bash flash-usb.sh`.
+
 ### 2026-07-03 — GPU power cap + train/serve schedule (step 85)
 - 🔧 **160W GPU power cap**, persistent via `gpu-power-cap.service` (persistence mode +
   `nvidia-smi -pl 160`). Cooler under load (~70-75°C), ~$50/yr at KUA, ~10% training cost.
