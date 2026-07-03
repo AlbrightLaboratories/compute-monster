@@ -12,7 +12,9 @@ HUB_SERIAL="6243168001"
 
 mkdir -p "$(dirname "$CFG")"
 
-effect='{"mode":"Meteor","colors":[[255,0,0],[221,23,19]],"speed":1,"brightness":4,"direction":"Clockwise","scope":"All","disabled":false}'
+# Pure red in EVERY color slot — the old #DD1713 tail (g=23,b=19) interpolated
+# to a pink wash on some blades (operator report 2026-07-03).
+effect='{"mode":"Meteor","colors":[[255,0,0],[255,0,0],[255,0,0],[255,0,0]],"speed":1,"brightness":4,"direction":"Clockwise","scope":"All","disabled":false}'
 devices=""
 for g in 0 1 2 3; do
   devices+="{\"device_id\":\"hid:${HUB_SERIAL}:group${g}\",\"mb_rgb_sync\":false,\"zones\":[{\"zone_index\":0,\"effect\":$effect,\"swap_lr\":false,\"swap_tb\":false}]}"

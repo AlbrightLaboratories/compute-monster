@@ -22,6 +22,20 @@ re-imaging mainly refreshes the **offline fallback** and pins a known-good basel
 
 ## Unreleased — on `main` (pulled live by the box)
 
+### 2026-07-03 — 🎉🧪 FANS CONFIRMED: red meteor running (operator-verified)
+- 🧪 **Operator visually confirmed the fans run the red meteor** (docs/09 profile:
+  Meteor, #FF0000 + #DD1713 tail, all 4 hub groups) via **lianli-linux**
+  (github.com/sgtaziz/lian-li-linux) — the open-source L-Connect 3 replacement whose
+  reverse-engineered ENE 6K77 protocol actually drives this hub.
+- **Final architecture:** `lianli-daemon` runs as an `a_guy` user service (linger enabled),
+  reads `~/.config/lianli/config.json` (written by step 46), re-applies the effect at every
+  boot. OpenRGB services removed. Steps 45+46 fully reproduce this on a fresh install.
+- 📌 **Finding for the record:** OpenRGB (1.0rc3 AND master git2031) detects the
+  SL-Infinity hub (0cf2:a102) but its LED writes are silently ignored by this firmware
+  (v1.5 per lianli-daemon readback; USB string says v1.4). Only fan-count/speed ops land.
+  Kernel USB/HID stack verified healthy throughout — the gap is OpenRGB's protocol.
+  Consider filing upstream with these diagnostics.
+
 ### 2026-07-02 — RGB root cause found: no "Direct" mode; switched to NATIVE hub Meteor
 - 🔧 **Why the fans never lit:** the Lian Li hub exposes **no "Direct" mode** — every
   `set_mode("Direct")` failed (silently, until we logged it), so all animator frames were
